@@ -1,3 +1,8 @@
+-- ======================================================
+-- PROYECTO: library2026
+-- ARCHIVO: 01_schema_library.sql
+-- DESCRIPCIÓN: Creación de base de datos y tablas.
+-- ======================================================
 -- 1. Intentar borrar si ya existe (para poder re-ejecutar el script sin errores)
 DROP DATABASE IF EXISTS library2026;
 
