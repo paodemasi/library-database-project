@@ -1,3 +1,8 @@
+-- ======================================================
+-- PROYECTO: library2026
+-- ARCHIVO: 02_data_library.sql
+-- DESCRIPCIÓN: Carga masiva de datos iniciales (Inserts).
+-- ======================================================
 USE library2026;
 
 -- GÉNEROS 
