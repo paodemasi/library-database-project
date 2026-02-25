@@ -80,3 +80,152 @@ ORDER BY price DESC;
 -- Identificación de lecturas en proceso o sin calificar
 SELECT * FROM readings 
 WHERE rating IS NULL;
+
+-- ------------------------------------------------------
+-- 5. RELACIONES ENTRE TABLAS (INNER JOINS)
+-- ------------------------------------------------------
+
+-- Listado de libros con sus respectivos autores
+SELECT b.book_name, a.full_name
+FROM books AS b
+INNER JOIN authors AS a ON b.author_id = a.id;
+
+-- Relación de libros con sus géneros
+SELECT b.book_name, g.name
+FROM books AS b
+INNER JOIN genres AS g ON b.genre = g.name;
+
+-- Perfil de lectores con descripción de género
+SELECT re.surname, re.name, g.description
+FROM readers AS re
+INNER JOIN genders AS g ON re.gender_id = g.id;
+
+-- ------------------------------------------------------
+-- 6. SEGUIMIENTO DE LECTURAS (JOINS MULTITABLA)
+-- ------------------------------------------------------
+
+-- Registro de ISBN leídos por cada lector
+SELECT re.surname, re.name, b.ISBN
+FROM readings AS r
+INNER JOIN readers AS re ON re.id_reader = r.id_reader
+INNER JOIN books AS b ON b.ISBN = r.isbn_book;
+
+-- Reporte de calificaciones por lector y libro
+SELECT re.surname, re.name, b.book_name, r.rating
+FROM readings AS r
+INNER JOIN readers AS re ON re.id_reader = r.id_reader
+INNER JOIN books AS b ON b.ISBN = r.isbn_book;
+
+--  Cruce total de datos (Lector, Libro, Autor y Género)
+SELECT 
+    re.surname, 
+    re.name, 
+    b.book_name, 
+    a.full_name, 
+    b.genre
+FROM readings AS r
+INNER JOIN readers AS re ON r.id_reader = re.id_reader
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN authors AS a ON b.author_id = a.id;
+
+-- ------------------------------------------------------
+-- 7. FILTRADO AVANZADO Y RANKINGS
+-- ------------------------------------------------------
+
+-- Rating 5: Lectores que calificaron con la nota máxima
+SELECT re.surname, re.name, b.book_name, r.rating
+FROM readings AS r
+INNER JOIN readers AS re ON re.id_reader = r.id_reader
+INNER JOIN books AS b ON b.ISBN = r.isbn_book
+WHERE r.rating = 5;
+
+-- Libros del género 'dystopian' con su autor
+SELECT b.book_name, a.full_name
+FROM books AS b
+INNER JOIN authors AS a ON b.author_id = a.id
+WHERE b.genre = 'dystopian';
+
+-- Ranking de libros por extensión (páginas) leídos
+SELECT re.surname, re.name, b.pages
+FROM readings AS r
+INNER JOIN books AS b ON b.ISBN = r.isbn_book
+INNER JOIN readers AS re ON r.id_reader = re.id_reader
+ORDER BY b.pages DESC;
+
+-- ------------------------------------------------------
+-- 8. AGREGACIONES Y MÉTRICAS (GROUP BY)
+-- ------------------------------------------------------
+
+-- Los 3 lectores más activos en la temporada de verano (por total de páginas)
+SELECT 
+    re.surname, 
+    re.name, 
+    SUM(b.pages) AS totalpages
+FROM readings AS r
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN readers AS re ON r.id_reader = re.id_reader
+WHERE r.date_finished BETWEEN '2022-12-21' AND '2023-03-21'
+GROUP BY re.id_reader
+ORDER BY totalpages DESC
+LIMIT 3;
+
+-- Promedio de rating por libro (Redondeado a 2 decimales)
+SELECT 
+    b.book_name, 
+    a.full_name, 
+    ROUND(AVG(r.rating), 2) AS average_rating_book
+FROM readings AS r
+INNER JOIN books AS b ON b.ISBN = r.isbn_book
+INNER JOIN authors AS a ON b.author_id = a.id
+GROUP BY b.ISBN
+ORDER BY average_rating_book DESC;
+
+-- Promedio de satisfacción por autor
+SELECT 
+    a.full_name, 
+    ROUND(AVG(r.rating), 2) AS average_rating
+FROM readings AS r
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN authors AS a ON b.author_id = a.id
+GROUP BY a.id
+ORDER BY average_rating DESC;
+
+-- ------------------------------------------------------
+-- 9. ACTUALIZACIONES Y BÚSQUEDA DE PATRONES
+-- ------------------------------------------------------
+
+-- Búsqueda de palabras clave en títulos o autores
+SELECT b.book_name, a.full_name
+FROM books AS b
+INNER JOIN authors AS a ON a.id = b.author_id
+WHERE b.book_name LIKE '%The%' 
+   OR b.book_name LIKE '%Amor%' 
+   OR b.book_name LIKE '%love%' 
+   OR a.full_name LIKE '%Haruki%';
+
+-- Corrección de nombre (Uso de UPDATE con condición específica)
+UPDATE authors
+SET full_name = 'Eric Arthur Blair'
+WHERE id = 6;
+
+-- ------------------------------------------------------
+-- 10. AUDITORÍA DE DATOS (LEFT JOINS / VALORES NULL)
+-- ------------------------------------------------------
+
+-- Desafío 1: Autores "Fantasma" (Autores sin libros registrados en catálogo)
+SELECT a.full_name AS autor_nombre, b.book_name AS libro_titulo
+FROM authors AS a
+LEFT JOIN books AS b ON a.id = b.author_id
+WHERE b.author_id IS NULL;
+
+-- Desafío 2: Géneros Impopulares (Categorías sin libros asociados)
+SELECT g.name AS genero_sin_libros 
+FROM genres AS g
+LEFT JOIN books AS b ON g.name = b.genre
+WHERE b.ISBN IS NULL;
+
+-- Desafío 3: Lectores Inactivos (Registrados sin lecturas finalizadas)
+SELECT re.name AS lector_nombre, re.surname AS lector_apellido
+FROM readers AS re
+LEFT JOIN readings AS r ON re.id_reader = r.id_reader
+WHERE r.id_reader IS NULL;
