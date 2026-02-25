@@ -14,3 +14,8 @@ Este es mi primer proyecto documentado de bases de datos. Aquí estoy aplicando 
 * **03_queries_library.sql**: Consultas exploratorias y analíticas.
 
 Nota: Los archivos están numerados para seguir el orden lógico de ejecución en el motor de base de datos.
+
+🎯 Enfoque del Proyecto
+Este repositorio está diseñado como un entrenamiento técnico intensivo (Hard Skills). El objetivo principal es dominar la sintaxis de SQL, la estructuración de bases de datos relacionales y la resolución de problemas lógicos mediante el uso de JOINS, filtros complejos y subconsultas.
+
+Nota: El foco actual es la maestría técnica sobre la herramienta, antes de avanzar hacia el análisis exploratorio de datos (EDA) o la generación de insights de negocio.
