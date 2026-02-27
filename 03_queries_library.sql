@@ -229,3 +229,36 @@ SELECT re.name AS lector_nombre, re.surname AS lector_apellido
 FROM readers AS re
 LEFT JOIN readings AS r ON re.id_reader = r.id_reader
 WHERE r.id_reader IS NULL;
+
+-- Desafío 4: El Inventario de Calificaciones (Volumen vs Calidad)
+-- Escenario: Reporte de catálogo con promedio y cantidad de lecturas vs calificaciones.
+SELECT 
+    b.book_name AS libro, 
+    ROUND(AVG(r.rating), 2) AS promedio_calificacion, 
+    COUNT(r.rating) AS cantidad_calificaciones, 
+    COUNT(r.isbn_book) AS cantidad_lecturas
+FROM books AS b
+LEFT JOIN readings AS r ON b.ISBN = r.isbn_book
+GROUP BY b.ISBN
+ORDER BY promedio_calificacion DESC;
+
+-- Desafío 5: Segmentación por Interés en Género 'Classic'
+-- Escenario: Identificar qué lectores han consumido literatura del género 'Classic'.
+SELECT 
+    re.name AS lector_nombre, 
+    re.surname AS lector_apellido, 
+    b.ISBN AS ISBN_clasico_leido, 
+    b.book_name AS título_libro
+FROM readers AS re
+LEFT JOIN readers AS r ON re.id_reader = r.id_reader
+LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.genre = 'Classic';
+
+-- Desafío 6: Reporte de "Lectores de Época" (Libros del Siglo XX o anteriores)
+-- Escenario: Mapear lectores con obras publicadas antes del año 2000.
+SELECT 
+    re.name AS nombre_lector, 
+    re.surname AS apellido_lector, 
+    b.book_name AS título_libro
+FROM readers AS re
+LEFT JOIN readings AS r ON re.id_reader = r.id_reader 
+LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.year_pub < 2000;
