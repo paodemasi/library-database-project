@@ -183,12 +183,12 @@ ORDER BY average_rating_book DESC;
 -- Promedio de satisfacción por autor
 SELECT 
     a.full_name, 
-    ROUND(AVG(r.rating), 2) AS average_rating
+    ROUND(AVG(r.rating), 2) AS average_rating_author
 FROM readings AS r
 INNER JOIN books AS b ON r.isbn_book = b.ISBN
 INNER JOIN authors AS a ON b.author_id = a.id
 GROUP BY a.id
-ORDER BY average_rating DESC;
+ORDER BY average_rating_author DESC;
 
 -- ------------------------------------------------------
 -- 9. ACTUALIZACIONES Y BÚSQUEDA DE PATRONES
@@ -243,22 +243,26 @@ GROUP BY b.ISBN
 ORDER BY promedio_calificacion DESC;
 
 -- Desafío 5: Segmentación por Interés en Género 'Classic'
--- Escenario: Identificar qué lectores han consumido literatura del género 'Classic'.
+-- Escenario: Identificar qué lectores han consumido literatura del género 'Classic' y diferenciarlos de los que no leyeron dicho género.
+-- Se utiliza CASE WHEN para mostrar en una columna específica si el lector leyó clásico o no con una subconsulta que permite obtener los lectores que si leyeron clásicos. 
 SELECT 
     re.name AS lector_nombre, 
     re.surname AS lector_apellido, 
-    b.ISBN AS ISBN_clasico_leido, 
-    b.book_name AS título_libro
-FROM readers AS re
-LEFT JOIN readers AS r ON re.id_reader = r.id_reader
-LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.genre = 'Classic';
+	CASE WHEN re.id_reader IN 
+		(SELECT re2.id_reader 
+		FROM readers AS re2
+		INNER JOIN readings AS r ON re2.id_reader = r.id_reader
+		INNER JOIN books AS b ON r.isbn_book = b.ISBN AND b.genre = 'classic') 
+	THEN 'si' ELSE 'no' END AS leyo_clasico
+FROM readers AS re;
 
 -- Desafío 6: Reporte de "Lectores de Época" (Libros del Siglo XX o anteriores)
--- Escenario: Mapear lectores con obras publicadas antes del año 2000.
+-- Lista de lectores y cantidad de libros leidos que se escribieron en siglo xx. Se utiliza COUNT para obtener la cantidad de libros y se agrupa por id_reader para generar un row por lector
 SELECT 
     re.name AS nombre_lector, 
     re.surname AS apellido_lector, 
-    b.book_name AS título_libro
+    COUNT(b.ISBN) AS cantidad_libros_sxx
 FROM readers AS re
 LEFT JOIN readings AS r ON re.id_reader = r.id_reader 
-LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.year_pub < 2000;
+LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.year_pub < 2000
+GROUP BY re.id_reader;
