@@ -266,3 +266,102 @@ FROM readers AS re
 LEFT JOIN readings AS r ON re.id_reader = r.id_reader 
 LEFT JOIN books AS b ON r.isbn_book = b.ISBN AND b.year_pub < 2000
 GROUP BY re.id_reader;
+
+-- ------------------------------------------------------
+-- 11. HAVING AVANZADO Y SUBCONSULTAS
+-- ------------------------------------------------------
+
+-- Autores con libros calificados con 4 ó más
+SELECT a.full_name, ROUND(AVG(r.rating), 2) AS average_rating_author
+FROM readings AS r
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN authors AS a ON b.author_id = a.id
+GROUP BY a.id
+HAVING average_rating_author > 4
+ORDER BY average_rating_author DESC;
+
+-- Géneros de libros que tienen más de un libro
+SELECT 
+	g.name AS genero_literario, 
+    COUNT(b.ISBN) AS cantidad_libros
+FROM genres AS g
+INNER JOIN books AS b ON g.name = b.genre
+GROUP BY genero_literario
+HAVING cantidad_libros > 1
+ORDER BY cantidad_libros DESC;
+
+-- Lectores que leyeron más de un libro
+SELECT 
+	re.name AS nombre,
+    re.surname AS apellido,
+    COUNT(b.ISBN) AS cantidad_libros
+FROM readings AS r
+INNER JOIN readers AS re ON r.id_reader = re.id_reader
+INNER JOIN books AS b ON b.ISBN = r.isbn_book
+GROUP BY re.id_reader
+HAVING cantidad_libros > 1
+ORDER BY cantidad_libros DESC;
+
+-- Nacionalidad de autores que tienen calificaciones de libros mayor a 4
+SELECT 
+	a.nationality AS nacionalidad,
+    (ROUND(AVG(r.rating), 2)) AS promedio_calificado
+FROM readings AS r
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN authors AS a ON b.author_id = a.id
+GROUP BY nationality
+HAVING promedio_calificado > 4
+ORDER BY promedio_calificado DESC;
+
+-- Nacionalidad de lectores que tienen promedio de calificacion de libros mayor a 4
+SELECT 
+	re.nationality AS nacionalidad,
+    (ROUND(AVG(r.rating), 2)) AS promedio_calificado
+FROM readings AS r
+INNER JOIN books AS b ON r.isbn_book = b.ISBN
+INNER JOIN readers AS re ON r.id_reader = re.id_reader
+GROUP BY nationality
+HAVING promedio_calificado > 4
+ORDER BY promedio_calificado DESC;
+
+-- Géneros que tienen libros con calificación promedio superior a 4
+SELECT 
+	g.name AS genero,
+    ROUND(AVG(r.rating), 2) AS promedio_genero,
+    COUNT(r.id_reading) AS cantidad_lecturas
+FROM genres AS g
+INNER JOIN books AS b ON g.name = b.genre
+INNER JOIN readings AS r ON b.ISBN = r.isbn_book
+GROUP BY genero
+HAVING promedio_genero > 4
+ORDER BY promedio_genero DESC; 
+
+--Autores que tienen más de un libro y el promedio de calificaciones es superior a 3
+SELECT 
+	a.full_name AS autores,
+    COUNT(b.ISBN) AS cantidad_libros_autor,
+	ROUND(AVG(r.rating), 2) AS promedio_autor
+FROM authors AS a 
+INNER JOIN books AS b ON a.id = b.author_id
+INNER JOIN readings AS r ON b.ISBN = r.isbn_book
+GROUP BY autores
+HAVING promedio_autor > 3 AND cantidad_libros_autor > 1
+ORDER BY promedio_autor DESC;
+
+-- Libros que cuestan más del precio promedio
+SELECT * FROM books
+WHERE price >
+(SELECT 
+	ROUND(AVG(b.price), 2) AS promedio_precios_libros
+    FROM books AS b);
+
+-- Lectores que leyeron libros del id_author 1
+SELECT 
+	re.surname AS apellido,
+    re.name AS nombre
+FROM readers AS re
+INNER JOIN readings AS r ON re.id_reader = r.id_reader 
+WHERE r.isbn_book IN (SELECT b.ISBN 
+						FROM books AS b
+						WHERE b.author_id = 1)
+GROUP BY re.id_reader;
